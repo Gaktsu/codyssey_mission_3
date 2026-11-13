@@ -21,10 +21,7 @@ def make_pattern(n, label):
 
     Cross: 가운데 행과 가운데 열이 1
     X:     두 대각선(i == j, i + j == n - 1)이 1
-    가운데가 하나로 정해지도록 n은 양의 홀수만 허용한다.
     """
-    if n < 1 or n % 2 == 0:
-        raise ValueError(f"n은 양의 홀수여야 합니다: {n}")
     if label not in (CROSS, X):
         raise ValueError(f"label은 {CROSS} 또는 {X}여야 합니다: {label}")
 
