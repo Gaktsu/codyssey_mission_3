@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# 테스트
+/src/tests/
+
+# 문서
+/docs/features.md
+
+# 편집기 임시 파일
+*.swp
