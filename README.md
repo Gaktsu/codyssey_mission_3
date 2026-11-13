@@ -121,7 +121,6 @@
 
 ## 8. 참고 문서
 
-- [docs/features.md](docs/features.md)
 - [docs/qna.md](docs/qna.md)
 - [docs/report.md](docs/report.md)
 - [docs/test-log.md](docs/test-log.md)
