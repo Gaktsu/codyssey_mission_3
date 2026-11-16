@@ -1,7 +1,8 @@
 """진입점: 모드 선택, 모드 1 입력(검증·재입력), 결과/요약 출력."""
+from npu.data_loader import evaluate_all, load_data
 from npu.judge import decide
 from npu.mac import mac
-from npu.perf import measure_avg_ms
+from npu.perf import format_table, measure_avg_ms, measure_sizes
 
 ROW_ERROR = "입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요."
 
@@ -55,3 +56,37 @@ def run_mode1():
     print(f"판정: {verdict}")
 
     return {"score_a": score_a, "score_b": score_b, "verdict": verdict, "avg_ms": avg_ms}
+
+
+def run_mode2(data_path="data/data.json"):
+    """모드 2: 필터 로드 → 패턴 평가 → 성능 분석 → 결과 요약.
+
+    data.json을 못 읽으면(load_data가 None 반환) 메시지를 남기고 None을 반환한다.
+    """
+    filters, patterns = load_data(data_path)
+    if filters is None:
+        return None
+
+    results = evaluate_all(patterns, filters)
+
+    for r in results:
+        status = "PASS" if r["passed"] else "FAIL"
+        print(
+            f"{r['key']}: Cross={r['score_cross']}, X={r['score_x']}, "
+            f"판정={r['verdict']}, expected={r['expected']}, {status}"
+        )
+
+    print(format_table(measure_sizes()))
+
+    total = len(results)
+    passed = sum(r["passed"] for r in results)
+    failed = total - passed
+    print(f"총 {total} / 통과 {passed} / 실패 {failed}")
+
+    failures = [r for r in results if not r["passed"]]
+    if failures:
+        print("실패 케이스:")
+        for r in failures:
+            print(f"  {r['key']}: {r['reason']}")
+
+    return {"results": results, "total": total, "passed": passed, "failed": failed}
