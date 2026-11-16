@@ -1,4 +1,7 @@
 """진입점: 모드 선택, 모드 1 입력(검증·재입력), 결과/요약 출력."""
+from npu.judge import decide
+from npu.mac import mac
+from npu.perf import measure_avg_ms
 
 ROW_ERROR = "입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요."
 
@@ -27,3 +30,28 @@ def read_matrix(label):
     """3×3 행렬을 한 줄(행)씩 입력받는다. 행 하나가 틀리면 그 행만 재입력."""
     print(f"{label} 입력 (한 줄에 3개 숫자, 공백 구분):")
     return [read_row(f"{label} {i + 1}행: ") for i in range(3)]
+
+
+def run_mode1():
+    """모드 1: 필터 A/B 입력 → 저장 확인 → 패턴 입력 → MAC 연산 → 판정 → 성능(3×3).
+
+    연산 시간은 패턴×필터A를 10회 반복한 평균(ms)을 대표값으로 쓴다
+    (A·B 모두 같은 3×3 크기라 MAC 1회 비용은 동일하다).
+    """
+    filter_a = read_matrix("필터 A")
+    print("필터 A 저장 완료")
+    filter_b = read_matrix("필터 B")
+    print("필터 B 저장 완료")
+    pattern = read_matrix("패턴")
+
+    score_a = mac(pattern, filter_a)
+    score_b = mac(pattern, filter_b)
+    verdict = decide(score_a, score_b, "A", "B", tie="판정 불가")
+    avg_ms = measure_avg_ms(pattern, filter_a)
+
+    print(f"A 점수: {score_a}")
+    print(f"B 점수: {score_b}")
+    print(f"연산 시간(평균/10회): {avg_ms:.4f} ms")
+    print(f"판정: {verdict}")
+
+    return {"score_a": score_a, "score_b": score_b, "verdict": verdict, "avg_ms": avg_ms}
