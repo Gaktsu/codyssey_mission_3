@@ -90,3 +90,25 @@ def run_mode2(data_path="data/data.json"):
             print(f"  {r['key']}: {r['reason']}")
 
     return {"results": results, "total": total, "passed": passed, "failed": failed}
+
+
+def main():
+    """진입점: 모드를 선택해 실행한다.
+
+    1/2가 아닌 입력은 안내 후 재입력. Ctrl+D(EOF)·Ctrl+C는 안내 후 조용히 종료한다.
+    """
+    try:
+        while True:
+            choice = input("모드를 선택하세요 (1: 사용자 입력, 2: data.json 분석): ").strip()
+            if choice == "1":
+                return run_mode1()
+            if choice == "2":
+                return run_mode2()
+            print("잘못된 선택입니다. 1 또는 2를 입력하세요.")
+    except (EOFError, KeyboardInterrupt):
+        print("\n입력이 종료되어 프로그램을 종료합니다.")
+        return None
+
+
+if __name__ == "__main__":
+    main()
