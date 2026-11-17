@@ -1,5 +1,3 @@
-"""라벨 정규화(+/cross → Cross, x → X)와 epsilon(1e-9) 기반 판정, PASS/FAIL."""
-
 CROSS = "Cross"
 X = "X"
 UNDECIDED = "UNDECIDED"
@@ -11,25 +9,20 @@ EPSILON = 1e-9
 # expected: '+', 'x' / filter 키: 'cross', 'x'
 LABEL_MAP = {"+": CROSS, "cross": CROSS, "x": X}
 
-
+# data.json의 라벨들을 정규화 ("+", "cross"는 "Cross"로 변경 // "x"는 "X"로 변경)
 def normalize_label(raw):
-    """원본 라벨을 표준 라벨(Cross / X)로 바꾼다. 알 수 없는 라벨이면 None."""
     if not isinstance(raw, str):
         return None
     return LABEL_MAP.get(raw.strip().lower())
 
-
+# 점수 비교하는 함수
+# 1e-9보다 작은 오차가 발생할 경우 동점으로 정함
+# 더 높은 점수쪽의 label을 반환
 def decide(score_a, score_b, label_a, label_b, tie=UNDECIDED):
-    """점수가 큰 쪽의 라벨을 반환한다. |a - b| < EPSILON 이면 tie를 반환한다.
-
-    모드 1: decide(a, b, "A", "B", tie="판정 불가")
-    모드 2: decide(cross, x, CROSS, X)  → Cross / X / UNDECIDED
-    """
     if abs(score_a - score_b) < EPSILON:
         return tie
     return label_a if score_a > score_b else label_b
 
-
+# 판정이 예상과 같다면 True, 아니면 False
 def is_pass(verdict, expected):
-    """판정이 expected와 같으면 True. UNDECIDED는 항상 FAIL."""
     return verdict != UNDECIDED and verdict == expected

@@ -1,4 +1,3 @@
-"""모드 2: data.json 로드, 키(size_N_idx) 파싱, 필터 선택, 스키마/크기 검증(케이스 단위 FAIL)."""
 import json
 import re
 
@@ -8,13 +7,8 @@ from npu.mac import mac
 FILTER_SIZES = (5, 13, 25)
 KEY_PATTERN = re.compile(r"^size_(\d+)_\d+$")
 
-
+# data.json에서 값을 읽어와 (필터만)정규화 후 필터와 패턴을 반환하는 함수
 def load_data(path="data/data.json"):
-    """data.json을 읽어 크기별 필터와 패턴 목록을 반환한다.
-
-    반환: (filters, patterns). filters는 {5: {"Cross": [...], "X": [...]}, 13: {...}, 25: {...}}.
-    파일이 없거나 JSON 문법 오류면 안내 메시지를 출력하고 (None, None)을 반환한다(크래시 없음).
-    """
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
@@ -41,7 +35,7 @@ def load_data(path="data/data.json"):
 
     return filters, data.get("patterns", {})
 
-
+# 검증 실패 케이스를 정상 결과와 같은 형식으로 반환 → 중단 없이 다음 케이스 진행
 def _fail(key, reason):
     return {
         "key": key,
@@ -53,20 +47,14 @@ def _fail(key, reason):
         "reason": reason,
     }
 
-
+# 패턴 또는 필터가 N x N의 형태가 맞는지 확인하는 함수
 def _is_nxn(matrix, n):
     return isinstance(matrix, list) and len(matrix) == n and all(
         isinstance(row, list) and len(row) == n for row in matrix
     )
 
-
+# 측정 전 패턴을 사용할 수 있는지 확인하고 측정하는 함수
 def evaluate_pattern(key, item, filters):
-    """패턴 1건을 검증·채점한다: 키에서 N 추출 → 필터 선택 → 크기 검증 → MAC → 판정.
-
-    검증에 실패하면 score_cross/score_x/verdict/expected는 None, passed=False,
-    reason에 실패 사유가 담긴 dict를 반환한다(예외를 던지지 않음 — 호출자가 다음
-    케이스를 계속 처리할 수 있다).
-    """
     match = KEY_PATTERN.match(key)
     if not match:
         return _fail(key, f"키 형식 오류: '{key}'는 size_{{N}}_{{idx}} 형식이 아닙니다.")
@@ -112,5 +100,4 @@ def evaluate_pattern(key, item, filters):
 
 
 def evaluate_all(patterns, filters):
-    """모든 패턴 케이스를 평가한다. 한 케이스가 FAIL이어도 중단 없이 다음 케이스를 계속 처리한다."""
     return [evaluate_pattern(key, item, filters) for key, item in patterns.items()]

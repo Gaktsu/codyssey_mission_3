@@ -1,13 +1,7 @@
-"""MAC 연산(반복문 직접 구현). (보너스) N×N Cross/X 패턴 생성기."""
 from npu.judge import CROSS, X
 
-
+# MAC 연산을 수행하는 함수
 def mac(pattern, filt):
-    """같은 위치의 값끼리 곱해 모두 더한 점수(float)를 반환한다.
-
-    pattern, filt는 같은 크기의 n×n 2차원 리스트여야 한다.
-    크기 검증은 호출하는 쪽(data_loader)에서 먼저 수행한다.
-    """
     n = len(pattern)
     total = 0.0
     for i in range(n):
@@ -15,13 +9,8 @@ def mac(pattern, filt):
             total += pattern[i][j] * filt[i][j]
     return total
 
-
+# 패턴 생성하는 함수 (보너스 과제 1)
 def make_pattern(n, label):
-    """N×N Cross 또는 X 패턴을 생성한다. (1.0 = 채움, 0.0 = 빈칸)
-
-    Cross: 가운데 행과 가운데 열이 1
-    X:     두 대각선(i == j, i + j == n - 1)이 1
-    """
     if label not in (CROSS, X):
         raise ValueError(f"label은 {CROSS} 또는 {X}여야 합니다: {label}")
 
