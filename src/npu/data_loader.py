@@ -35,23 +35,8 @@ def load_data(path="data/data.json"):
 
     return filters, data.get("patterns", {})
 
-# 검증 실패 케이스를 정상 결과와 같은 형식으로 반환 → 중단 없이 다음 케이스 진행
-def _fail(key, reason):
-    return {
-        "key": key,
-        "score_cross": None,
-        "score_x": None,
-        "verdict": None,
-        "expected": None,
-        "passed": False,
-        "reason": reason,
-    }
-
-# 패턴 또는 필터가 N x N의 형태가 맞는지 확인하는 함수
-def _is_nxn(matrix, n):
-    return isinstance(matrix, list) and len(matrix) == n and all(
-        isinstance(row, list) and len(row) == n for row in matrix
-    )
+def evaluate_all(patterns, filters):
+    return [evaluate_pattern(key, item, filters) for key, item in patterns.items()]
 
 # 측정 전 패턴을 사용할 수 있는지 확인하고 측정하는 함수
 def evaluate_pattern(key, item, filters):
@@ -98,6 +83,20 @@ def evaluate_pattern(key, item, filters):
         "reason": reason,
     }
 
+# 패턴 또는 필터가 N x N의 형태가 맞는지 확인하는 함수
+def _is_nxn(matrix, n):
+    return isinstance(matrix, list) and len(matrix) == n and all(
+        isinstance(row, list) and len(row) == n for row in matrix
+    )
 
-def evaluate_all(patterns, filters):
-    return [evaluate_pattern(key, item, filters) for key, item in patterns.items()]
+# 검증 실패 케이스를 정상 결과와 같은 형식으로 반환 → 중단 없이 다음 케이스 진행
+def _fail(key, reason):
+    return {
+        "key": key,
+        "score_cross": None,
+        "score_x": None,
+        "verdict": None,
+        "expected": None,
+        "passed": False,
+        "reason": reason,
+    }

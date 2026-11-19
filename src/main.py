@@ -5,28 +5,22 @@ from npu.perf import format_table, measure_avg_ms, measure_sizes
 
 ROW_ERROR = "입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요."
 
-# 사용자 입력이 유효한지 확인하는 함수
-def parse_row(line):
-    parts = line.split()
-    if len(parts) != 3:
-        return None
+def main():
     try:
-        return [float(p) for p in parts]
-    except ValueError:
+        while True:
+            choice = input("모드를 선택하세요 (1: 사용자 입력, 2: data.json 분석): ").strip()
+            # 3x3 입력으로 사용자가 패턴을 직접 정한 뒤 MAC연산을 수행
+            if choice == "1":
+                return run_mode1()
+            # data.json에 있는 5x5, 13x13, 25x25 패턴을 가져와서 MAC연산을 수행
+            if choice == "2":
+                return run_mode2()
+            print("잘못된 선택입니다. 1 또는 2를 입력하세요.")
+    except (EOFError, KeyboardInterrupt):
+        print("\n입력이 종료되어 프로그램을 종료합니다.")
         return None
 
-# 패턴을 입력 및 검증하는 함수
-def read_row(prompt):
-    while True: 
-        row = parse_row(input(prompt))
-        if row is not None:
-            return row
-        print(ROW_ERROR)
-
-# 사용자 입력 모드(모드 1)일 경우 패턴을 받아 측정하는 함수
-def read_matrix(label):
-    print(f"{label} 입력 (한 줄에 3개 숫자, 공백 구분):")
-    return [read_row(f"{label} {i + 1}행: ") for i in range(3)]
+# ============== 모드 1 ==============
 
 # 사용자 입력 모드를 실행
 def run_mode1():
@@ -48,6 +42,31 @@ def run_mode1():
     print(f"판정: {verdict}")
 
     return {"score_a": score_a, "score_b": score_b, "verdict": verdict, "avg_ms": avg_ms}
+
+# 사용자 입력 모드(모드 1)일 경우 패턴을 받아 측정하는 함수
+def read_matrix(label):
+    print(f"{label} 입력 (한 줄에 3개 숫자, 공백 구분):")
+    return [read_row(f"{label} {i + 1}행: ") for i in range(3)]
+
+# 패턴을 입력 및 검증하는 함수
+def read_row(prompt):
+    while True: 
+        row = parse_row(input(prompt))
+        if row is not None:
+            return row
+        print(ROW_ERROR)
+
+# 사용자 입력이 유효한지 확인하는 함수
+def parse_row(line):
+    parts = line.split()
+    if len(parts) != 3:
+        return None
+    try:
+        return [float(p) for p in parts]
+    except ValueError:
+        return None
+
+# ============== 모드 2 ==============
 
 # data.json에 있는 필터와 패턴을 통해 측정하는 함수
 def run_mode2(data_path="data/data.json"):
@@ -76,22 +95,6 @@ def run_mode2(data_path="data/data.json"):
         print("실패 케이스:")
         for r in failures:
             print(f"  {r['key']}: {r['reason']}")
-
-
-def main():
-    try:
-        while True:
-            choice = input("모드를 선택하세요 (1: 사용자 입력, 2: data.json 분석): ").strip()
-            # 3x3 입력으로 사용자가 패턴을 직접 정한 뒤 MAC연산을 수행
-            if choice == "1":
-                return run_mode1()
-            # data.json에 있는 5x5, 13x13, 25x25 패턴을 가져와서 MAC연산을 수행
-            if choice == "2":
-                return run_mode2()
-            print("잘못된 선택입니다. 1 또는 2를 입력하세요.")
-    except (EOFError, KeyboardInterrupt):
-        print("\n입력이 종료되어 프로그램을 종료합니다.")
-        return None
 
 
 if __name__ == "__main__":
