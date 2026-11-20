@@ -112,15 +112,26 @@ def run_mode2(data_path="data/data.json"):
 def run_mode3(sizes=(3, 5, 13, 25)):
     print()
     for n in sizes:
+        filter_cross = make_pattern(n, CROSS)
+        filter_x = make_pattern(n, X)
+        pattern = make_pattern(n, CROSS)
+
         print(f"===== {n}×{n} =====")
         print("필터 Cross:")
-        print_matrix(make_pattern(n, CROSS))
+        print_matrix(filter_cross)
         print()
         print("필터 X:")
-        print_matrix(make_pattern(n, X))
+        print_matrix(filter_x)
         print()
         print("패턴:")
-        print_matrix(make_pattern(n, CROSS))
+        print_matrix(pattern)
+        print()
+
+        score_cross = mac(pattern, filter_cross)
+        score_x = mac(pattern, filter_x)
+        print(f"Cross 점수: {score_cross}")
+        print(f"X 점수: {score_x}")
+        print(f"판정: {decide(score_cross, score_x, CROSS, X)}")
         print()
 
     print(format_table(measure_sizes(sizes)))
