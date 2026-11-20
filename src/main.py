@@ -1,21 +1,24 @@
 from npu.data_loader import evaluate_all, load_data
-from npu.judge import decide
-from npu.mac import mac
-from npu.perf import format_table, measure_avg_ms, measure_sizes
+from npu.judge import CROSS, X, decide
+from npu.mac import mac, make_pattern
+from npu.perf import format_table, measure_avg_ms, measure_data_sizes, measure_sizes
 
 ROW_ERROR = "입력 형식 오류: 각 줄에 3개의 숫자를 공백으로 구분해 입력하세요."
 
 def main():
     try:
         while True:
-            choice = input("모드를 선택하세요 (1: 사용자 입력, 2: data.json 분석): ").strip()
+            choice = input("모드를 선택하세요 (1: 사용자 입력, 2: data.json 분석, 3: 패턴 생성기): ").strip()
             # 3x3 입력으로 사용자가 패턴을 직접 정한 뒤 MAC연산을 수행
             if choice == "1":
                 return run_mode1()
             # data.json에 있는 5x5, 13x13, 25x25 패턴을 가져와서 MAC연산을 수행
             if choice == "2":
                 return run_mode2()
-            print("잘못된 선택입니다. 1 또는 2를 입력하세요.")
+            # 패턴 생성기로 사이즈별 패턴을 만들어 MAC연산 성능을 측정
+            if choice == "3":
+                return run_mode3()
+            print("잘못된 선택입니다. 1, 2 또는 3을 입력하세요.")
     except (EOFError, KeyboardInterrupt):
         print("\n입력이 종료되어 프로그램을 종료합니다.")
         return None
@@ -24,12 +27,14 @@ def main():
 
 # 사용자 입력 모드를 실행
 def run_mode1():
+    print()
     filter_a = read_matrix("필터 A")
-    print("필터 A 저장 완료")
+    print("필터 A 저장 완료\n")
     filter_b = read_matrix("필터 B")
-    print("필터 B 저장 완료")
+    print("필터 B 저장 완료\n")
 
     pattern = read_matrix("패턴")
+    print()
 
     score_a = mac(pattern, filter_a)
     score_b = mac(pattern, filter_b)
@@ -70,12 +75,14 @@ def parse_row(line):
 
 # data.json에 있는 필터와 패턴을 통해 측정하는 함수
 def run_mode2(data_path="data/data.json"):
+    print()
     filters, patterns = load_data(data_path)
     if filters is None:
         return None
 
     results = evaluate_all(patterns, filters)
 
+    print()
     for r in results:
         status = "PASS" if r["passed"] else "FAIL"
         print(
@@ -83,18 +90,45 @@ def run_mode2(data_path="data/data.json"):
             f"판정={r['verdict']}, expected={r['expected']}, {status}"
         )
 
-    print(format_table(measure_sizes()))
+    print()
+    print(format_table(measure_data_sizes(results, patterns, filters)))
 
     total = len(results)
     passed = sum(r["passed"] for r in results)
     failed = total - passed
+    print()
     print(f"총 {total} / 통과 {passed} / 실패 {failed}")
 
     failures = [r for r in results if not r["passed"]]
     if failures:
+        print()
         print("실패 케이스:")
         for r in failures:
             print(f"  {r['key']}: {r['reason']}")
+
+# ============== 모드 3 ==============
+
+# 패턴 생성기로 사이즈별 필터, 패턴을 만들어 보여주고 MAC연산 평균 시간을 표로 출력하는 함수
+def run_mode3(sizes=(3, 5, 13, 25)):
+    print()
+    for n in sizes:
+        print(f"===== {n}×{n} =====")
+        print("필터 Cross:")
+        print_matrix(make_pattern(n, CROSS))
+        print()
+        print("필터 X:")
+        print_matrix(make_pattern(n, X))
+        print()
+        print("패턴:")
+        print_matrix(make_pattern(n, CROSS))
+        print()
+
+    print(format_table(measure_sizes(sizes)))
+
+# 행렬을 한 줄씩 공백으로 구분해 출력하는 함수
+def print_matrix(matrix):
+    for row in matrix:
+        print(" ".join(f"{v:g}" for v in row))
 
 
 if __name__ == "__main__":
